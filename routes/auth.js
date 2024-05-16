@@ -42,7 +42,7 @@ router.post("/signin", async (req,res) => {
     try {
         const match = await bcrypt.compare(password, savedUser.password)
         if(match){
-             const token = jwt.sign({_id:savedUser.id}, Jwt_secret)
+            const token = jwt.sign({_id:savedUser.id}, Jwt_secret)
             const {_id, name, username, email} = savedUser
             return res.json({token,
                 message:"Signed In Successfully",
@@ -54,4 +54,39 @@ router.post("/signin", async (req,res) => {
         console.log(err)
     }
 })
+
+router.post("/googleLogin", async (req,res) => {
+    const {email_verified, email, name, clientId, username, Photo} = req.body
+    if(email_verified){
+        const savedUser = await USER.findOne({email:email})
+        if (savedUser) {
+            const token = jwt.sign({_id:savedUser.id}, Jwt_secret)
+            const {_id, name, username, email} = savedUser
+            return res.json({token,
+                message:"Signed In Successfully",
+            user:{_id,name,username,email}})
+        }else{
+            const password = email + clientId
+            const user = new USER({
+                name,
+                email,
+                username,
+                password:password,
+                Photo: Photo
+            })
+            try {
+                const userDetails = await user.save()
+                const userId = userDetails._id.toString()
+                const token = jwt.sign({_id: userId}, Jwt_secret)
+                const {_id, name, username, email} = userDetails
+                return res.json({token,
+                    message:"Signed In Successfully",
+                user:{_id,name,username,email}})
+                } catch (error){
+                    console.log(error)
+            }
+        }
+    }
+})
+
 module.exports=router
