@@ -6,9 +6,11 @@ const POST  = mongoose.model('POST')
 const USER = mongoose.model("USER")
 
 router.get("/allPosts",requireLogin, async (req,res)=> {
+    const limit = req.query.limit
+    const skip = req.query.skip
     try{
         const posts = await POST.find().populate("postedBy","_id name Photo").populate("comments.postedBy","_id name")
-        .sort('-createdAt')
+        .skip(parseInt(skip)).limit(parseInt(limit)).sort('-createdAt')
         res.status(200).send(posts)
     }catch(err){
         console.log(err)
