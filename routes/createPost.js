@@ -9,7 +9,7 @@ router.get("/allPosts",requireLogin, async (req,res)=> {
     const limit = req.query.limit
     const skip = req.query.skip
     try{
-        const posts = await POST.find().populate("postedBy","_id name Photo").populate("comments.postedBy","_id name")
+        const posts = await POST.find().populate("saved").populate("postedBy","_id name Photo").populate("comments.postedBy","_id name")
         .skip(parseInt(skip)).limit(parseInt(limit)).sort('-createdAt')
         res.status(200).send(posts)
     }catch(err){
@@ -70,6 +70,34 @@ router.put("/unlike", requireLogin, async (req,res) => {
     }
 })
 
+router.put("/saved", requireLogin, async (req,res) => {
+    try{const response = await POST.findByIdAndUpdate(req.body.postId,{
+        $set : {
+            saved: req.user._id
+        }
+    },{
+        new: true
+    })
+    res.status(200).json(response)
+}catch(err){
+    return res.status(422).json(response)
+}
+})
+
+router.put("/unsaved", requireLogin, async (req,res) => {
+    try{const response = await POST.findByIdAndUpdate(req.body.postId,{
+        $unset : {
+            saved: null
+        }
+    },{
+        new: true
+    })
+    res.status(200).json(response)
+    }catch(err){
+        res.status(422).json(err)
+    }
+})
+
 router.put("/comment", requireLogin, async (req,res)=> {
     try{const response = await POST.findByIdAndUpdate(req.body.postId,{
         $push : {
@@ -111,5 +139,14 @@ router.get("/myfollowingpost",requireLogin, async (req,res) => {
         res.status(422).json(err)
     }
 })
+
+router.get("/savedposts", requireLogin, async (req,res) => {
+    try{const response = await POST.find({saved: req.user._id})
+    res.status(200).json(response)}
+    catch(err){
+        res.status(422).json(err)
+    }
+})
+
 
 module.exports = router
