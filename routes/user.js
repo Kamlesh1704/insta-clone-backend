@@ -67,4 +67,17 @@ router.put("/uploadProfilePic",requireLogin,async (req,res) =>{
 
 })
 
+router.get("/searcheduser/:name", requireLogin, async (req,res) => {
+    try{
+        const partialUsername = req.params.name
+        const regex = new RegExp('.*' + partialUsername + '.*', 'i');
+        const response = await USER.find({ name: { $regex: regex } });
+        res.status(200).json(response )
+    }
+    catch(err)
+    {
+        res.status(422).json(err )
+    }
+})
+
 module.exports = router
