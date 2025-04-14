@@ -35,7 +35,7 @@ router.post("/signin", async (req,res) => {
     if (!email || !password) {
        return  res.status(422).json({error: "Please add both Email and Password"})
     }
-    const savedUser = await USER.findOne({email:email})
+    const savedUser = await USER.findOne({where:{email:email}})
     if (!savedUser) {
         return res.status(422).json({error:"Invalid Email"})
     }
